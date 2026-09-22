@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b4a30">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SeppeBot">
+<title>SeppeBot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#0d5236; --felt-dark:#083a26; --felt-deep:#052617;
+  --gold:#cfa857; --gold-soft:#ecd9a3; --gold-dim:#8c7440; --hair:rgba(207,168,87,.28);
+  --ink:#f4eedd; --ink-dim:#a9bdb1;
+  --red:#e8776b; --win:#86dca2;
+  --field:rgba(0,0,0,.30);
+  --card:rgba(0,0,0,.20);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255,255,255,.09), transparent 60%),
+    linear-gradient(180deg, var(--felt) 0%, var(--felt-dark) 100%);
+  background-color:var(--felt-dark);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --felt:#0b4a30; --felt-dark:#07331f; }
+}
+:root[data-theme="dark"]{ --felt:#0b4a30; --felt-dark:#07331f; }
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px); -webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100%; color:var(--ink);
+  font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size:16px; line-height:1.45;
+  font-variant-numeric:tabular-nums;
+  background:transparent;
+  -webkit-tap-highlight-color:transparent;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.14; z-index:0;
+  background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px);
+}
+.wrap{position:relative; z-index:1; max-width:520px; margin:0 auto; padding:20px 14px 32px}
+.table,.felt{display:contents}
+
+/* Header */
+header{text-align:center; padding:10px 0 18px; margin-bottom:18px; border-bottom:1px solid var(--hair)}
+h1{
+  font-family:"Limelight",Georgia,serif; font-weight:400; margin:0;
+  font-size:2.9rem; line-height:1; letter-spacing:.03em; color:var(--gold-soft);
+  text-shadow:0 2px 0 rgba(90,68,24,.9), 0 0 22px rgba(207,168,87,.28);
+}
+.suits{color:var(--gold); letter-spacing:.7em; margin:8px 0 0; font-size:.8rem; padding-left:.7em; opacity:.85}
+.suits .r{color:var(--red)}
+.sub{display:none}
+
+/* Settings */
+.settings{display:flex; gap:12px; justify-content:space-between; align-items:center; margin-bottom:16px;
+  background:var(--card); border:1px solid var(--hair); border-radius:14px; padding:10px 12px}
+.settings label{color:var(--ink-dim); font-size:.9rem; font-weight:500}
+.money{position:relative; display:block}
+.money span{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--gold-dim); pointer-events:none; font-weight:600}
+input{
+  font:inherit; font-size:16px; color:var(--ink); background:var(--field); border:1px solid rgba(236,217,163,.22);
+  border-radius:10px; padding:10px 11px; width:100%; min-width:0; min-height:44px;
+  -webkit-appearance:none; appearance:none;
+}
+.money input{padding-left:26px; text-align:right; font-weight:600}
+input::placeholder{color:rgba(244,238,221,.32)}
+input:focus{border-color:var(--gold)}
+input:focus-visible,button:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
+input.bad{border-color:var(--red); background:rgba(232,119,107,.10)}
+
+/* Players */
+.grid-head{display:none!important}
+.players{margin:0; padding:0; list-style:none; display:grid; gap:10px}
+.player{
+  position:relative; display:grid; grid-template-columns:1fr 1fr; grid-template-areas:"name name" "buy cash";
+  gap:10px; background:var(--card); border:1px solid var(--hair); border-radius:16px; padding:12px;
+}
+.player .f-name{grid-area:name; padding-right:132px}
+.player .f-name .m-label{display:none}
+.player .f-name input{font-weight:700; background:transparent; border-color:transparent; padding-left:2px; min-height:40px}
+.player .f-name input:focus{background:var(--field); border-color:var(--gold)}
+.player .f-buy{grid-area:buy; min-width:0}
+.player .f-cash{grid-area:cash; min-width:0}
+.m-label{display:block; color:var(--ink-dim); font-size:.78rem; font-weight:500; margin:0 0 4px 2px}
+.buyin{display:flex; gap:6px}
+.buyin .money{flex:1; min-width:0}
+.rebuy{
+  flex:none; font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; white-space:nowrap;
+  color:var(--gold-soft); background:transparent; border:1px solid var(--gold-dim); border-radius:10px; padding:0 9px; min-height:44px;
+}
+.rebuy:active{background:rgba(207,168,87,.15)}
+.net{
+  position:absolute; top:16px; right:52px; text-align:right; font-weight:800; font-size:1rem;
+  padding:4px 10px; border-radius:999px; background:rgba(0,0,0,.25);
+}
+.net.pos{color:var(--win)} .net.neg{color:var(--red)} .net.zero{color:var(--ink-dim)}
+.del{
+  position:absolute; top:12px; right:10px; width:36px; height:36px; border-radius:50%;
+  border:1px solid rgba(244,238,221,.18); background:transparent; color:var(--ink-dim); cursor:pointer; font-size:1.2rem; line-height:1;
+}
+.del:active{color:var(--red); border-color:var(--red)}
+
+.empty{text-align:center; color:var(--ink-dim); padding:26px 12px; border:1px dashed var(--hair); border-radius:16px}
+
+.add{display:flex; gap:8px; margin-top:12px}
+.add input{flex:1}
+.btn-chip{
+  flex:none; font:inherit; font-weight:800; font-size:.95rem; cursor:pointer; color:#2a1d07; min-height:44px;
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold)); border:0; border-radius:10px; padding:0 16px;
+  box-shadow:0 2px 0 #7a6230;
+}
+.btn-chip:active{transform:translateY(1px); box-shadow:0 1px 0 #7a6230}
+
+/* Totals */
+.totals{display:grid; grid-template-columns:repeat(3,1fr); margin-top:20px;
+  background:var(--card); border:1px solid var(--hair); border-radius:14px; overflow:hidden}
+.stat{padding:10px 6px; text-align:center}
+.stat + .stat{border-left:1px solid var(--hair)}
+.stat small{display:block; color:var(--ink-dim); font-size:.72rem; font-weight:500}
+.stat b{font-size:1rem; color:var(--gold-soft); white-space:nowrap}
+.stat.ok b{color:var(--win)} .stat.off b{color:var(--red)}
+
+.alert{margin-top:10px; border-radius:12px; padding:11px 13px; font-size:.9rem}
+.alert.warn{background:rgba(232,119,107,.14); border:1px solid rgba(232,119,107,.5); color:#ffdcd6}
+.alert.info{background:rgba(0,0,0,.2); border:1px solid rgba(244,238,221,.14); color:var(--ink-dim)}
+
+/* Settlement */
+.settle{margin-top:24px; padding-top:18px; border-top:1px solid var(--hair)}
+.settle h2{font-family:"Limelight",Georgia,serif; font-weight:400; color:var(--gold-soft); font-size:1.6rem; margin:0 0 12px; text-align:center}
+.transfers{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.transfer{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"from amt" "to amt"; row-gap:1px; column-gap:12px; align-items:center;
+  background:var(--card); border:1px solid var(--hair); border-left:3px solid var(--gold); border-radius:12px; padding:11px 14px;
+}
+.transfer .from{grid-area:from; color:var(--ink); font-weight:700; overflow-wrap:anywhere}
+.transfer .to{grid-area:to; color:var(--ink-dim); font-size:.9rem; overflow-wrap:anywhere}
+.transfer .to::before{content:"betaalt aan "; color:var(--ink-dim)}
+.transfer .arrow{display:none}
+.chip-amt{
+  grid-area:amt; font-weight:800; color:#2a1d07; background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  border-radius:999px; padding:6px 13px; white-space:nowrap; font-size:1rem;
+}
+.actions{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+.ghost{font:inherit; font-weight:700; font-size:.92rem; cursor:pointer; color:var(--gold-soft); background:transparent;
+  border:1px solid var(--gold-dim); border-radius:10px; padding:0 16px; min-height:44px}
+.ghost:active{background:rgba(207,168,87,.12)}
+.ghost.danger{color:#f0b6ae; border-color:rgba(232,119,107,.45); font-size:.85rem; min-height:40px}
+#copyBtn{width:100%}
+
+@media (min-width:600px){
+  .wrap{padding-top:40px}
+  h1{font-size:3.4rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== v3: kaarten & goud ===== */
+:root{
+  --gold-grad:linear-gradient(135deg,#f6e7b6 0%,#d4ae5c 28%,#9c7a34 50%,#e9cf86 72%,#b58c3e 100%);
+  --panel:linear-gradient(160deg,#0f4d33 0%,#0a3a26 100%);
+}
+header{border-bottom:0; padding-top:4px; margin-bottom:10px}
+header::after{ /* gouden scheidingslijn met fiche */
+  content:"♠"; display:block; margin:14px auto 0; width:100%; height:18px; line-height:18px; font-size:.8rem; color:#2a1d07;
+  background:
+    radial-gradient(circle at 50% 50%, #f1dc9e 0 8px, transparent 8.5px) center/100% 100% no-repeat,
+    linear-gradient(90deg,transparent,#d4ae5c 25%,#d4ae5c 44%,transparent 44%,transparent 56%,#d4ae5c 56%,#d4ae5c 75%,transparent) center/100% 1px no-repeat;
+}
+.suits{display:none}
+
+/* waaier van speelkaarten */
+.fan{position:relative; height:100px; width:200px; margin:0 auto 6px}
+.pcard{
+  position:absolute; left:50%; bottom:0; width:52px; height:74px; margin-left:-26px; border-radius:7px;
+  background:linear-gradient(160deg,#fffdf6,#efe6cf); color:#1c1c1c;
+  box-shadow:0 6px 14px rgba(0,0,0,.45), inset 0 0 0 2px #fff, inset 0 0 0 3px #d4ae5c;
+  transform-origin:50% 230%; font-family:Georgia,serif; font-weight:700;
+  animation:deal .7s cubic-bezier(.2,.8,.2,1.1) both;
+}
+.pcard b{position:absolute; top:5px; left:7px; font-size:.95rem; line-height:1}
+.pcard i{position:absolute; inset:0; display:grid; place-items:center; font-style:normal; font-size:1.7rem; padding-top:8px}
+.pcard.red{color:#c0392b}
+.pcard:nth-child(1){--r:-24deg; animation-delay:.05s}
+.pcard:nth-child(2){--r:-8deg; animation-delay:.15s}
+.pcard:nth-child(3){--r:8deg; animation-delay:.25s}
+.pcard:nth-child(4){--r:24deg; animation-delay:.35s}
+.pcard{transform:rotate(var(--r))}
+@keyframes deal{
+  from{opacity:0; transform:translateY(-60px) rotate(0deg) scale(.8)}
+  to{opacity:1; transform:rotate(var(--r))}
+}
+.fan:active .pcard{transform:rotate(calc(var(--r) * 1.35)) translateY(-4px); transition:transform .25s}
+
+/* gouden titel met eenmalige glans */
+h1{
+  background:linear-gradient(100deg,#b8923f 0%,#f7e8b8 22%,#d4ae5c 40%,#fff4d0 50%,#d4ae5c 60%,#a9853a 80%,#e8cf8a 100%);
+  background-size:250% 100%; background-position:100% 0;
+  -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  text-shadow:none; filter:drop-shadow(0 2px 0 rgba(70,50,15,.9)) drop-shadow(0 0 14px rgba(212,174,92,.35));
+  animation:shine 2.4s ease-out .6s both;
+}
+@keyframes shine{from{background-position:100% 0} to{background-position:0% 0}}
+
+/* panelen met gouden rand */
+.settings,.totals,.player,.transfer,.empty{
+  border:1.5px solid transparent;
+  background:var(--panel) padding-box, var(--gold-grad) border-box;
+}
+.settings label{color:var(--gold-soft)}
+
+/* spelers als speelkaarten */
+.player{overflow:hidden; box-shadow:0 8px 18px rgba(0,0,0,.28)}
+.player::after{
+  position:absolute; right:-6px; bottom:-26px; font-size:6.5rem; line-height:1; pointer-events:none;
+  color:rgba(212,174,92,.09); font-family:Georgia,serif;
+}
+.player::before{
+  position:absolute; left:6px; bottom:4px; font-size:.75rem; pointer-events:none; color:var(--gold); opacity:.8; font-family:Georgia,serif;
+}
+.player:nth-child(4n+1)::after,.player:nth-child(4n+1)::before{content:"♠"}
+.player:nth-child(4n+2)::after,.player:nth-child(4n+2)::before{content:"♥"}
+.player:nth-child(4n+3)::after,.player:nth-child(4n+3)::before{content:"♣"}
+.player:nth-child(4n+4)::after,.player:nth-child(4n+4)::before{content:"♦"}
+.player:nth-child(4n+2)::after,.player:nth-child(4n+4)::after{color:rgba(232,119,107,.10)}
+.player:nth-child(4n+2)::before,.player:nth-child(4n+4)::before{color:var(--red)}
+.player > *{position:relative; z-index:1}
+.player > .net,.player > .del{position:absolute}
+.player .f-name input{font-size:1.05rem; color:var(--gold-soft)}
+.m-label{color:rgba(236,217,163,.75)}
+.money span{color:var(--gold)}
+input{border-color:rgba(212,174,92,.35)}
+.net{border:1px solid rgba(212,174,92,.35)}
+.del{border-color:rgba(212,174,92,.35); color:var(--gold-soft)}
+
+.rebuy{
+  color:#2a1d07; border:0; background:var(--gold-grad); background-size:150% 150%;
+  box-shadow:0 2px 0 #6f5625, inset 0 1px 0 rgba(255,255,255,.5);
+}
+.rebuy:active{transform:translateY(1px); box-shadow:0 1px 0 #6f5625}
+
+/* knoppen met gouden glans */
+.btn-chip,#copyBtn{
+  position:relative; overflow:hidden; color:#2a1d07; border:0;
+  background:var(--gold-grad); background-size:150% 150%;
+  box-shadow:0 3px 0 #6f5625, inset 0 1px 0 rgba(255,255,255,.55), 0 6px 16px rgba(212,174,92,.25);
+}
+.btn-chip::after,#copyBtn::after{
+  content:""; position:absolute; top:0; bottom:0; width:40%; left:-60%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent); transform:skewX(-20deg);
+  animation:sweep 4.5s ease-in-out 1.5s infinite;
+}
+@keyframes sweep{0%,70%{left:-60%} 100%{left:130%}}
+#copyBtn{font-weight:800; min-height:48px}
+
+/* totalen */
+.stat + .stat{border-left:1px solid rgba(212,174,92,.35)}
+.stat small{color:rgba(236,217,163,.75)}
+.stat b{color:var(--gold-soft)}
+.totals:has(.stat.ok){box-shadow:0 0 0 1px rgba(134,220,162,.4), 0 0 22px rgba(212,174,92,.35)}
+
+/* afrekening als gedeelde kaarten */
+.settle{border-top:0; position:relative}
+.settle h2{
+  background:var(--gold-grad); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 1px 0 rgba(70,50,15,.9)); font-size:1.8rem;
+}
+.settle h2::before,.settle h2::after{
+  content:"♦"; -webkit-text-fill-color:var(--red); font-size:.9rem; vertical-align:middle; margin:0 10px; filter:none;
+}
+.settle h2::before{content:"♠"; -webkit-text-fill-color:#e9cf86}
+.transfer{border-left-width:1.5px; box-shadow:0 6px 14px rgba(0,0,0,.25); position:relative; padding-left:44px}
+.transfer::before{
+  content:""; position:absolute; left:10px; top:50%; width:24px; height:34px; margin-top:-17px; border-radius:4px;
+  background:repeating-linear-gradient(45deg,#8e241c 0 3px,#b83a30 3px 6px);
+  box-shadow:inset 0 0 0 2px #f4eedd, inset 0 0 0 3px #d4ae5c, 0 2px 4px rgba(0,0,0,.4);
+  transform:rotate(-8deg);
+}
+.transfer .from{color:var(--gold-soft)}
+.chip-amt{
+  background:radial-gradient(circle at 50% 40%,#fff3cc,#d4ae5c 60%,#a8843a);
+  border:2px dashed rgba(255,255,255,.7); box-shadow:0 2px 0 #6f5625, 0 0 0 2px #b58c3e;
+  padding:5px 12px;
+}
+.ghost.danger{background:transparent}
+
+@media (prefers-reduced-motion:reduce){
+  .pcard,h1,.btn-chip::after,#copyBtn::after{animation:none!important}
+  h1{background-position:0 0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="table"><div class="felt">
+    <header>
+      <div class="fan" aria-hidden="true">
+        <div class="pcard"><b>A</b><i>♠</i></div>
+        <div class="pcard red"><b>K</b><i>♥</i></div>
+        <div class="pcard"><b>Q</b><i>♣</i></div>
+        <div class="pcard red"><b>J</b><i>♦</i></div>
+      </div>
+      <h1>SeppeBot</h1>
+      <p class="suits">♠<span class="r">♥</span>♣<span class="r">♦</span></p>
+    </header>
+
+    <div class="settings">
+      <label for="defBuy">Standaard buy-in / rebuy</label>
+      <div class="money" style="width:110px"><span>€</span><input id="defBuy" inputmode="decimal" value="20"></div>
+    </div>
+
+    <div class="grid-head" id="gridHead"></div>
+    <ul class="players" id="players"></ul>
+    <div class="empty" id="empty">Nog niemand aan tafel. Voeg hieronder spelers toe.</div>
+
+    <form class="add" id="addForm" onsubmit="return false">
+      <input id="newName" placeholder="Naam speler" autocomplete="off" autocapitalize="words" enterkeyhint="done" aria-label="Naam speler">
+      <button class="btn-chip" id="addBtn" type="button">Toevoegen</button>
+    </form>
+
+    <div class="totals">
+      <div class="stat"><small>Ingelegd</small><b id="tIn">€ 0,00</b></div>
+      <div class="stat"><small>Cashout</small><b id="tOut">€ 0,00</b></div>
+      <div class="stat" id="diffBox"><small>Verschil</small><b id="tDiff">€ 0,00</b></div>
+    </div>
+    <div id="alerts"></div>
+
+    <section class="settle" id="settle" hidden>
+      <h2>Afrekening</h2>
+      <ul class="transfers" id="transfers"></ul>
+      <div class="actions">
+        <button class="ghost" id="copyBtn" type="button">Kopieer afrekening</button>
+      </div>
+    </section>
+
+    <div class="actions" style="margin-top:28px">
+      <button class="ghost danger" id="resetBtn" type="button">Nieuwe avond</button>
+    </div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  const fmt = new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR'});
+  const eur = c => fmt.format(c/100);
+  let players = []; // {id,name,buy (string),cash (string)}
+  let nextId = 1;
+
+  // Parse "12,50" / "12.5" / "1.250,00" into integer cents. Returns null if empty, NaN if invalid.
+  function toCents(s){
+    s = String(s ?? '').trim().replace(/\s|€/g,'');
+    if(s==='') return null;
+    if(s.includes(',') && s.includes('.')) s = s.replace(/\./g,'').replace(',','.');
+    else s = s.replace(',','.');
+    if(!/^-?\d*\.?\d*$/.test(s) || s==='-' || s==='.') return NaN;
+    const n = parseFloat(s);
+    return isNaN(n) ? NaN : Math.round(n*100);
+  }
+  const centsToInput = c => (c/100).toFixed(2).replace('.',',').replace(',00','');
+
+  const $ = id => document.getElementById(id);
+  const esc = s => s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  function defaultBuy(){ const c = toCents($('defBuy').value); return (c && c>0) ? c : 0; }
+
+  function addPlayer(){
+    const name = $('newName').value.trim();
+    if(!name){ $('newName').focus(); return; }
+    players.push({id:nextId++, name, buy:centsToInput(defaultBuy()), cash:''});
+    $('newName').value=''; $('newName').focus();
+    renderPlayers();
+  }
+
+  function renderPlayers(){
+    const ul = $('players');
+    ul.innerHTML = players.map(p=>`
+      <li class="player" data-id="${p.id}">
+        <div class="f-name"><span class="m-label">Speler</span><input data-f="name" value="${esc(p.name)}" aria-label="Naam"></div>
+        <div class="f-buy"><span class="m-label">Buy-in totaal</span>
+          <div class="buyin"><div class="money"><span>€</span><input data-f="buy" inputmode="decimal" value="${esc(p.buy)}" aria-label="Buy-in van ${esc(p.name)}"></div>
+          <button class="rebuy" data-act="rebuy" type="button" title="Standaard bedrag toevoegen">+ rebuy</button></div>
+        </div>
+        <div class="f-cash"><span class="m-label">Cashout</span><div class="money"><span>€</span><input data-f="cash" inputmode="decimal" value="${esc(p.cash)}" placeholder="0" aria-label="Cashout van ${esc(p.name)}"></div></div>
+        <div class="net" data-net></div>
+        <button class="del" data-act="del" type="button" aria-label="Verwijder ${esc(p.name)}">×</button>
+      </li>`).join('');
+    $('empty').hidden = players.length>0;
+    $('gridHead').style.visibility = players.length ? 'visible':'hidden';
+    compute();
+  }
+
+  $('players').addEventListener('input', e=>{
+    const li = e.target.closest('.player'); if(!li) return;
+    const p = players.find(x=>x.id==li.dataset.id); const f = e.target.dataset.f;
+    if(p && f){ p[f] = e.target.value; compute(); }
+  });
+  $('players').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const li = btn.closest('.player'); const p = players.find(x=>x.id==li.dataset.id);
+    if(btn.dataset.act==='del'){ players = players.filter(x=>x!==p); renderPlayers(); }
+    if(btn.dataset.act==='rebuy'){
+      const cur = toCents(p.buy); const base = (cur && !isNaN(cur)) ? cur : 0;
+      p.buy = centsToInput(base + defaultBuy());
+      li.querySelector('[data-f="buy"]').value = p.buy; compute();
+    }
+  });
+  $('addBtn').addEventListener('click', addPlayer);
+  $('newName').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addPlayer(); }});
+  $('defBuy').addEventListener('input', ()=>$('defBuy').classList.toggle('bad', !(toCents($('defBuy').value)>0)));
+  $('resetBtn').addEventListener('click', ()=>{
+    if(players.length && !confirm('Alle spelers en bedragen wissen?')) return;
+    players=[]; renderPlayers();
+  });
+
+  // Minimal number of transfers: split into max number of zero-sum groups (exact, bitmask DP),
+  // each group of k players needs k-1 transfers. Greedy fallback for very large tables.
+  function settle(bal){ // bal: [{name, c}] with c != 0, sum 0
+    const n = bal.length; if(!n) return [];
+    let groups;
+    if(n <= 16){
+      const N = 1<<n, sum = new Int32Array(N), dp = new Int8Array(N);
+      for(let m=1;m<N;m++){ const lb = m & -m, i = 31-Math.clz32(lb); sum[m] = sum[m^lb] + bal[i].c; }
+      for(let m=1;m<N;m++){
+        let best=0;
+        for(let i=0;i<n;i++) if(m>>i&1){ const v=dp[m^(1<<i)]; if(v>best) best=v; }
+        dp[m] = best + (sum[m]===0 ? 1:0);
+      }
+      // reconstruct order of adding players, cut where prefix sum is zero
+      const order=[]; let m=N-1;
+      while(m){
+        const need = dp[m] - (sum[m]===0?1:0);
+        for(let i=0;i<n;i++) if(m>>i&1 && dp[m^(1<<i)]===need){ order.push(i); m^=(1<<i); break; }
+      }
+      order.reverse(); groups=[]; let cur=[], s=0;
+      for(const i of order){ cur.push(bal[i]); s+=bal[i].c; if(s===0){ groups.push(cur); cur=[]; } }
+    } else groups=[bal];
+
+    const out=[];
+    for(const g of groups){
+      const cred = g.filter(x=>x.c>0).map(x=>({...x})), debt = g.filter(x=>x.c<0).map(x=>({name:x.name,c:-x.c}));
+      while(cred.length && debt.length){
+        cred.sort((a,b)=>b.c-a.c); debt.sort((a,b)=>b.c-a.c);
+        const a = Math.min(cred[0].c, debt[0].c);
+        out.push({from:debt[0].name, to:cred[0].name, c:a});
+        cred[0].c-=a; debt[0].c-=a;
+        if(!cred[0].c) cred.shift(); if(!debt[0].c) debt.shift();
+      }
+    }
+    return out.sort((a,b)=>a.from.localeCompare(b.from)||b.c-a.c);
+  }
+
+  let lastText='';
+  function compute(){
+    let tIn=0, tOut=0; const issues=[]; const missing=[]; const bal=[]; let ok=true;
+    const rows = document.querySelectorAll('.player');
+    players.forEach((p,idx)=>{
+      const li = rows[idx]; const b = toCents(p.buy), c = toCents(p.cash);
+      const bi = li.querySelector('[data-f="buy"]'), ci = li.querySelector('[data-f="cash"]');
+      bi.classList.toggle('bad', b===null || isNaN(b) || b<0);
+      ci.classList.toggle('bad', c!==null && (isNaN(c) || c<0));
+      const net = li.querySelector('[data-net]');
+      const nm = p.name.trim() || 'Naamloze speler';
+      if(b===null || isNaN(b) || b<0){ issues.push(`Buy-in van ${nm} is ongeldig.`); ok=false; }
+      if(c!==null && (isNaN(c)||c<0)){ issues.push(`Cashout van ${nm} is ongeldig.`); ok=false; }
+      if(c===null) missing.push(nm);
+      const bv = (b>0)?b:0, cv = (c>0)?c:0;
+      tIn+=bv; tOut+=cv;
+      if(c===null || isNaN(c) || isNaN(b) || b===null){ net.textContent='–'; net.className='net zero'; }
+      else { const d=cv-bv; net.textContent=(d>0?'+':'')+eur(d); net.className='net '+(d>0?'pos':d<0?'neg':'zero'); bal.push({name:nm,c:d}); }
+    });
+    const names = players.map(p=>p.name.trim().toLowerCase()).filter(Boolean);
+    if(new Set(names).size!==names.length) issues.push('Twee spelers hebben dezelfde naam. Maak ze uniek zodat de afrekening duidelijk is.');
+
+    const diff = tOut - tIn;
+    $('tIn').textContent=eur(tIn); $('tOut').textContent=eur(tOut);
+    $('tDiff').textContent=(diff>0?'+':'')+eur(diff);
+    $('diffBox').className='stat '+(players.length && !missing.length ? (diff===0?'ok':'off') : '');
+
+    const alerts=[];
+    issues.forEach(t=>alerts.push(`<div class="alert warn">${esc(t)}</div>`));
+    if(players.length===1) alerts.push(`<div class="alert info">Voeg minstens een tweede speler toe.</div>`);
+    if(missing.length && players.length) alerts.push(`<div class="alert info">Nog geen cashout voor: ${esc(missing.join(', '))}. Vul 0 in als iemand alles kwijt is.</div>`);
+    else if(players.length && diff!==0) alerts.push(`<div class="alert warn">De cashouts zijn samen <b>${eur(Math.abs(diff))}</b> ${diff>0?'hoger':'lager'} dan wat er ingelegd is. Er is dus ${eur(Math.abs(diff))} ${diff>0?'te veel':'te weinig'}. Controleer de chips en buy-ins; de afrekening verschijnt zodra het klopt.</div>`);
+    $('alerts').innerHTML=alerts.join('');
+
+    const ready = ok && players.length>=2 && !missing.length && diff===0;
+    $('settle').hidden=!ready;
+    if(ready){
+      const tr = settle(bal.filter(x=>x.c!==0));
+      if(!tr.length){ $('transfers').innerHTML='<li class="alert info" style="text-align:center">Iedereen staat quitte. Niemand hoeft te betalen.</li>'; lastText='Poker afrekening: iedereen staat quitte.'; }
+      else {
+        $('transfers').innerHTML = tr.map(t=>`<li class="transfer"><span class="from">${esc(t.from)}</span><span class="arrow">betaalt →</span><span class="to">${esc(t.to)}</span><span class="chip-amt">${eur(t.c)}</span></li>`).join('');
+        lastText = '♠ SeppeBot afrekening ♠\n' + tr.map(t=>`${t.from} → ${t.to}: ${eur(t.c)}`).join('\n');
+      }
+    }
+  }
+
+  $('copyBtn').addEventListener('click', async ()=>{
+    const btn=$('copyBtn');
+    try{ await navigator.clipboard.writeText(lastText); btn.textContent='Gekopieerd'; }
+    catch(e){
+      try{ const ta=document.createElement('textarea'); ta.value=lastText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); btn.textContent='Gekopieerd'; }
+      catch(e2){ btn.textContent='Kopiëren lukt niet'; }
+    }
+    setTimeout(()=>btn.textContent='Kopieer afrekening',1600);
+  });
+
+  renderPlayers();
+})();
+</script>
+</body>
+</html>
