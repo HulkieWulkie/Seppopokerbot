@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SeppeBot">
 <title>SeppeBot</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Limelight&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -291,6 +294,51 @@ input{border-color:rgba(212,174,92,.35)}
 }
 .ghost.danger{background:transparent}
 
+
+/* ===== v4: tabs, opslaan, geschiedenis ===== */
+.tabs{display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; margin-bottom:16px; border-radius:12px;
+  border:1.5px solid transparent; background:var(--panel) padding-box, var(--gold-grad) border-box}
+.tab{font:inherit; font-weight:800; font-size:.92rem; min-height:40px; border:0; border-radius:9px; cursor:pointer;
+  background:transparent; color:var(--gold-soft)}
+.tab[aria-selected="true"]{background:var(--gold-grad); color:#2a1d07; box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+#saveBtn{position:relative; overflow:hidden; color:#2a1d07; border:0; width:100%; font-weight:800; min-height:48px;
+  background:var(--gold-grad); background-size:150% 150%;
+  box-shadow:0 3px 0 #6f5625, inset 0 1px 0 rgba(255,255,255,.55), 0 6px 16px rgba(212,174,92,.25)}
+#saveBtn:disabled{opacity:.75; cursor:default}
+#copyBtn{background:transparent; color:var(--gold-soft); border:1px solid var(--gold-dim); box-shadow:none}
+#copyBtn::after{display:none}
+.hsec{margin-top:6px}
+.hsec + .hsec{margin-top:26px}
+.lb,.nights{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.lb li{display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:12px; padding:10px 14px; border-radius:12px;
+  border:1.5px solid transparent; background:var(--panel) padding-box, var(--gold-grad) border-box; box-shadow:0 6px 14px rgba(0,0,0,.22)}
+.rank{width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:.85rem;
+  background:rgba(0,0,0,.3); color:var(--gold-soft); border:1px solid rgba(212,174,92,.35)}
+.lb li:nth-child(1) .rank{background:var(--gold-grad); color:#2a1d07; border:0}
+.lb li:nth-child(2) .rank{background:linear-gradient(135deg,#f2f2f2,#a9a9a9); color:#222; border:0}
+.lb li:nth-child(3) .rank{background:linear-gradient(135deg,#f0c39a,#a0622e); color:#2a1407; border:0}
+.who{min-width:0}
+.who b{display:block; color:var(--gold-soft); overflow-wrap:anywhere}
+.who small{color:var(--ink-dim); font-size:.8rem}
+.tot{font-weight:800; white-space:nowrap}
+.tot.pos{color:var(--win)} .tot.neg{color:var(--red)} .tot.zero{color:var(--ink-dim)}
+.night{border-radius:12px; border:1.5px solid transparent; background:var(--panel) padding-box, var(--gold-grad) border-box; overflow:hidden}
+.night summary{list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 14px}
+.night summary::-webkit-details-marker{display:none}
+.night summary b{color:var(--gold-soft)}
+.night summary small{display:block; color:var(--ink-dim); font-size:.8rem}
+.night summary .chev{color:var(--gold); transition:transform .2s}
+.night[open] summary .chev{transform:rotate(90deg)}
+.nbody{padding:0 14px 14px; border-top:1px solid rgba(212,174,92,.25)}
+.nbody h3{font-size:.78rem; font-weight:700; color:rgba(236,217,163,.75); margin:12px 0 6px; text-transform:uppercase; letter-spacing:.06em}
+.row{display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:.92rem}
+.row:last-child{border-bottom:0}
+.row span:first-child{overflow-wrap:anywhere}
+.row .dim{color:var(--ink-dim); font-size:.82rem}
+.nbody .ndel{display:block; box-sizing:border-box; margin:12px 0 0; width:100%; max-width:100%}
+.backup{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px}
+.backup .ghost{width:100%; font-size:.85rem; padding:0 8px}
+.note{color:var(--ink-dim); font-size:.82rem; text-align:center; margin:10px 0 0}
 @media (prefers-reduced-motion:reduce){
   .pcard,h1,.btn-chip::after,#copyBtn::after{animation:none!important}
   h1{background-position:0 0}
@@ -311,6 +359,12 @@ input{border-color:rgba(212,174,92,.35)}
       <p class="suits">♠<span class="r">♥</span>♣<span class="r">♦</span></p>
     </header>
 
+    <nav class="tabs" role="tablist">
+      <button class="tab" id="tabGame" role="tab" aria-selected="true" type="button">Tafel</button>
+      <button class="tab" id="tabHist" role="tab" aria-selected="false" type="button">Geschiedenis</button>
+    </nav>
+
+    <main id="game">
     <div class="settings">
       <label for="defBuy">Standaard buy-in / rebuy</label>
       <div class="money" style="width:110px"><span>€</span><input id="defBuy" inputmode="decimal" value="20"></div>
@@ -336,6 +390,7 @@ input{border-color:rgba(212,174,92,.35)}
       <h2>Afrekening</h2>
       <ul class="transfers" id="transfers"></ul>
       <div class="actions">
+        <button class="ghost" id="saveBtn" type="button">Avond opslaan</button>
         <button class="ghost" id="copyBtn" type="button">Kopieer afrekening</button>
       </div>
     </section>
@@ -343,6 +398,25 @@ input{border-color:rgba(212,174,92,.35)}
     <div class="actions" style="margin-top:28px">
       <button class="ghost danger" id="resetBtn" type="button">Nieuwe avond</button>
     </div>
+    </main>
+
+    <main id="hist" hidden>
+      <section class="settle hsec">
+        <h2>Klassement</h2>
+        <ul class="lb" id="lb"></ul>
+      </section>
+      <section class="settle hsec">
+        <h2>Avonden</h2>
+        <ul class="nights" id="nights"></ul>
+      </section>
+      <div class="empty" id="histEmpty">Nog geen avonden opgeslagen. Tik na een afrekening op "Avond opslaan".</div>
+      <div class="backup">
+        <button class="ghost" id="exportBtn" type="button">Back-up maken</button>
+        <button class="ghost" id="importBtn" type="button">Back-up terugzetten</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <p class="note" id="histNote">Opgeslagen avonden staan alleen op dit toestel.</p>
+    </main>
   </div></div>
 </div>
 
@@ -457,6 +531,7 @@ input{border-color:rgba(212,174,92,.35)}
   }
 
   let lastText='';
+  let lastResult=null, savedSig=null;
   function compute(){
     let tIn=0, tOut=0; const issues=[]; const missing=[]; const bal=[]; let ok=true;
     const rows = document.querySelectorAll('.player');
@@ -492,6 +567,7 @@ input{border-color:rgba(212,174,92,.35)}
 
     const ready = ok && players.length>=2 && !missing.length && diff===0;
     $('settle').hidden=!ready;
+    lastResult = null;
     if(ready){
       const tr = settle(bal.filter(x=>x.c!==0));
       if(!tr.length){ $('transfers').innerHTML='<li class="alert info" style="text-align:center">Iedereen staat quitte. Niemand hoeft te betalen.</li>'; lastText='Poker afrekening: iedereen staat quitte.'; }
@@ -499,6 +575,8 @@ input{border-color:rgba(212,174,92,.35)}
         $('transfers').innerHTML = tr.map(t=>`<li class="transfer"><span class="from">${esc(t.from)}</span><span class="arrow">betaalt →</span><span class="to">${esc(t.to)}</span><span class="chip-amt">${eur(t.c)}</span></li>`).join('');
         lastText = '♠ SeppeBot afrekening ♠\n' + tr.map(t=>`${t.from} → ${t.to}: ${eur(t.c)}`).join('\n');
       }
+      lastResult = {bal, tr};
+      updateSaveBtn();
     }
   }
 
@@ -512,8 +590,121 @@ input{border-color:rgba(212,174,92,.35)}
     setTimeout(()=>btn.textContent='Kopieer afrekening',1600);
   });
 
+    /* ===== Geschiedenis (lokaal op dit toestel) ===== */
+  const KEY='seppebot.history.v1';
+  function loadHist(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'[]'); return Array.isArray(d)?d:[]; }catch(e){ return []; } }
+  function saveHist(list){ try{ localStorage.setItem(KEY, JSON.stringify(list)); return true; }catch(e){ return false; } }
+  const sigOf = r => r ? JSON.stringify(r.bal.map(x=>[x.name,x.c])) : null;
+
+  function updateSaveBtn(){
+    const b=$('saveBtn'); const done = lastResult && sigOf(lastResult)===savedSig;
+    b.disabled=!!done; b.textContent = done ? 'Opgeslagen ✓' : 'Avond opslaan';
+  }
+
+  $('saveBtn').addEventListener('click', ()=>{
+    if(!lastResult) return;
+    const night = {
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+      date: new Date().toISOString(),
+      players: players.map(p=>{ const b=toCents(p.buy)||0, c=toCents(p.cash)||0; return {name:p.name.trim()||'Naamloze speler', buy:b, cash:c, net:c-b}; }),
+      transfers: lastResult.tr.map(t=>({from:t.from,to:t.to,c:t.c}))
+    };
+    const list=loadHist(); list.unshift(night);
+    if(!saveHist(list)){ alert('Opslaan lukt niet op dit toestel (privé-venster of opslag vol?).'); return; }
+    try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+    savedSig=sigOf(lastResult); updateSaveBtn(); renderHist();
+  });
+
+  function renderHist(){
+    const list=loadHist();
+    $('histEmpty').hidden = list.length>0;
+    $('lb').parentElement.hidden = !list.length;
+    $('nights').parentElement.hidden = !list.length;
+    // klassement: zelfde naam (hoofdletters/spaties genegeerd) = zelfde speler
+    const m=new Map();
+    [...list].reverse().forEach(n=>n.players.forEach(p=>{
+      const k=p.name.trim().toLowerCase(); const e=m.get(k)||{name:p.name,net:0,n:0,sp:{}};
+      e.sp[p.name]=(e.sp[p.name]||0)+1; e.net+=p.net; e.n++; m.set(k,e);
+      // toon de meest gebruikte schrijfwijze (bij gelijkstand die met hoofdletter)
+      const up=x=>x[0]&&x[0]!==x[0].toLowerCase()?1:0;
+      e.name=Object.keys(e.sp).reduce((a,b)=>(e.sp[b]>e.sp[a]||(e.sp[b]===e.sp[a]&&up(b)>up(a)))?b:a);
+    }));
+    const lb=[...m.values()].sort((a,b)=>b.net-a.net||a.name.localeCompare(b.name));
+    const cls = v => v>0?'pos':v<0?'neg':'zero';
+    $('lb').innerHTML = lb.map((e,i)=>`<li><span class="rank">${i+1}</span>
+      <span class="who"><b>${esc(e.name)}</b><small>${e.n} ${e.n===1?'avond':'avonden'}</small></span>
+      <span class="tot ${cls(e.net)}">${e.net>0?'+':''}${eur(e.net)}</span></li>`).join('');
+    const df=new Intl.DateTimeFormat('nl-BE',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    $('nights').innerHTML = list.map(n=>{
+      const pot=n.players.reduce((a,p)=>a+p.buy,0);
+      const ps=[...n.players].sort((a,b)=>b.net-a.net);
+      return `<li><details class="night"><summary>
+        <span><b>${esc(df.format(new Date(n.date)))}</b><small>${n.players.length} spelers · pot ${eur(pot)}</small></span>
+        <span class="chev">›</span></summary>
+        <div class="nbody">
+          <h3>Resultaten</h3>
+          ${ps.map(p=>`<div class="row"><span>${esc(p.name)} <span class="dim">(in ${eur(p.buy)}, uit ${eur(p.cash)})</span></span><span class="tot ${cls(p.net)}">${p.net>0?'+':''}${eur(p.net)}</span></div>`).join('')}
+          <h3>Afrekening</h3>
+          ${n.transfers.length ? n.transfers.map(t=>`<div class="row"><span>${esc(t.from)} → ${esc(t.to)}</span><span>${eur(t.c)}</span></div>`).join('') : '<div class="row"><span class="dim">Iedereen quitte</span></div>'}
+          <button class="ghost danger ndel" data-del="${esc(n.id)}" type="button">Verwijder deze avond</button>
+        </div></details></li>`;
+    }).join('');
+  }
+
+  $('nights').addEventListener('click', e=>{
+    const b=e.target.closest('[data-del]'); if(!b) return;
+    if(!confirm('Deze avond definitief verwijderen? Het klassement wordt herberekend.')) return;
+    saveHist(loadHist().filter(n=>n.id!==b.dataset.del));
+    savedSig=null; updateSaveBtn(); renderHist();
+  });
+
+  function showTab(h){
+    $('game').hidden=h; $('hist').hidden=!h;
+    $('tabGame').setAttribute('aria-selected',String(!h)); $('tabHist').setAttribute('aria-selected',String(h));
+    if(h) renderHist();
+    window.scrollTo(0,0);
+  }
+  $('tabGame').addEventListener('click',()=>showTab(false));
+  $('tabHist').addEventListener('click',()=>showTab(true));
+
+  // Back-up: bestand maken en terugzetten
+  $('exportBtn').addEventListener('click', async ()=>{
+    const list=loadHist(); if(!list.length){ alert('Er zijn nog geen avonden om te bewaren.'); return; }
+    const name=`seppebot-backup-${new Date().toISOString().slice(0,10)}.json`;
+    const blob=new Blob([JSON.stringify({app:'SeppeBot',v:1,nights:list},null,1)],{type:'application/json'});
+    try{
+      const file=new File([blob],name,{type:'application/json'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'SeppeBot back-up'}); return; }
+    }catch(e){ if(e && e.name==='AbortError') return; }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  });
+  $('importBtn').addEventListener('click',()=>$('importFile').click());
+  $('importFile').addEventListener('change', async e=>{
+    const f=e.target.files[0]; e.target.value=''; if(!f) return;
+    try{
+      const d=JSON.parse(await f.text()); const inc=Array.isArray(d)?d:d.nights;
+      if(!Array.isArray(inc)) throw 0;
+      const ok=inc.filter(n=>n && n.id && n.date && Array.isArray(n.players) && Array.isArray(n.transfers)
+        && n.players.every(p=>typeof p.name==='string' && Number.isInteger(p.net) && Number.isInteger(p.buy) && Number.isInteger(p.cash)));
+      const list=loadHist(); const ids=new Set(list.map(n=>n.id));
+      const add=ok.filter(n=>!ids.has(n.id));
+      const merged=[...list,...add].sort((a,b)=>b.date.localeCompare(a.date));
+      if(!saveHist(merged)) throw 0;
+      renderHist(); alert(`${add.length} avond(en) teruggezet${ok.length>add.length?`, ${ok.length-add.length} stonden er al`:''}.`);
+    }catch(err){ alert('Dit bestand is geen geldige SeppeBot back-up.'); }
+  });
+
+  try{ localStorage.setItem('seppebot.test','1'); localStorage.removeItem('seppebot.test'); }
+  catch(e){ $('histNote').textContent='Opslaan werkt niet in deze browsermodus (bv. privé-venster).'; }
+
   renderPlayers();
 })();
+</script>
+<script>
+if('serviceWorker' in navigator && window.isSecureContext){
+  addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
 </script>
 </body>
 </html>
